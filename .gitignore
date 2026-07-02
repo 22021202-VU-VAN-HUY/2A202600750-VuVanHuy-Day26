@@ -30,6 +30,8 @@ implementation/data/
 .env.*
 !.env.example
 .mcp.json
+.codex/config.toml
+!.codex/config.example.toml
 
 # Editor and OS files
 .vscode/

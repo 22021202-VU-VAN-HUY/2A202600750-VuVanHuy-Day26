@@ -1,181 +1,263 @@
-# Lab: Build a Database MCP Server with FastMCP and SQLite
+# SQLite FastMCP Lab Server
 
-## Goal
-
-Build a Model Context Protocol (MCP) server using FastMCP that exposes a small database through:
+Project nay implement mot MCP server bang FastMCP de expose database SQLite nho qua 3 tools bat buoc:
 
 - `search`
 - `insert`
 - `aggregate`
 
-You must also expose the database schema as an MCP resource, test the server with Inspector or equivalent tooling, and show the server working from at least one MCP client.
-
-## Learning Outcomes
-
-By the end of this lab, students should be able to:
-
-- explain what MCP tools and resources are
-- build a FastMCP server in Python
-- connect FastMCP to a SQLite database
-- safely validate database requests before executing SQL
-- expose dynamic schema context through `@mcp.resource(...)`
-- test tool schemas, normal calls, and error responses
-- connect the server to an MCP client such as Claude Code, Codex, or Gemini CLI
-
-## Required Features
-
-### Part 1: MCP Server
-
-Implement a FastMCP server that exposes exactly these tool categories:
-
-1. `search`
-2. `insert`
-3. `aggregate`
-
-Your server may use SQLite for the main implementation. If you want to support PostgreSQL too, design the code so the database layer can be swapped later.
-
-### Part 2: Resource
-
-Expose database schema information as MCP resources:
-
-- one resource for the full database schema
-- one dynamic resource template for a single table schema
-
-Suggested URIs:
+Server cung expose schema database qua MCP resources:
 
 - `schema://database`
 - `schema://table/{table_name}`
 
-### Part 3: Validation and Error Handling
+Dataset demo gom 3 bang: `students`, `courses`, `enrollments`.
 
-Your tools must reject unsafe or invalid requests:
+## 1. Setup
 
-- unknown table names
-- unknown column names
-- unsupported filter operators
-- invalid aggregate requests
-- empty inserts
+Yeu cau:
 
-Do not build SQL by blindly concatenating raw user input.
+- Python 3.10+ (da test voi Python 3.11)
+- `pip`
+- Node.js va `npx` neu dung MCP Inspector
+- Codex, Claude Code, hoac MCP client khac neu muon demo client rieng
 
-### Part 4: Testing and Verification
+Tao virtual environment tren Windows PowerShell:
 
-Verify all of the following:
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
 
-1. the server starts correctly
-2. the three tools are discoverable
-3. the schema resource is discoverable
-4. valid tool calls return useful results
-5. invalid tool calls return clear errors
-6. at least one MCP client can connect and use the server
+Neu PowerShell chan activate script:
 
-### Part 5: Demo Deliverables
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
 
-Prepare:
+## 2. Khoi tao database
 
-- GitHub repository
-- setup instructions
-- tool descriptions
-- testing steps
-- at least one client configuration example
-- short demo video, around 2 minutes
+```powershell
+python implementation\init_db.py
+```
 
-Inspector screenshots are recommended if you use MCP Inspector.
-
-## Suggested Project Structure
+Lenh nay tao database tai:
 
 ```text
-implementation/
-  db.py
-  init_db.py
-  mcp_server.py
-  verify_server.py
-  tests/
-    test_server.py
+implementation/data/lab.db
 ```
 
-## Recommended Data Model
+File database sinh ra duoc ignore, nen co the chay lai de reset seed data.
 
-Use a small relational dataset so `search`, `insert`, and `aggregate` are easy to demo. Example:
+## 3. Chay MCP server
 
-- `students`
-- `courses`
-- `enrollments`
-
-## Example Tasks to Demonstrate
-
-- search all students in cohort `A1`
-- insert a new student
-- count rows in a table
-- compute average score by cohort
-- read the full schema resource
-- read `schema://table/students`
-- show an invalid request, such as searching a missing table
-
-## FastMCP and Inspector References
-
-- FastMCP quickstart: https://gofastmcp.com/v2/getting-started/quickstart
-- FastMCP resources: https://gofastmcp.com/v2/servers/resources
-- MCP Inspector: https://modelcontextprotocol.io/docs/tools/inspector
-
-## Client Setup Notes
-
-### Claude Code
-
-Anthropic documents local JSON config and `claude mcp add` flows here:
-
-- https://code.claude.com/docs/en/mcp
-
-Claude Code supports MCP resources via `@server:resource-uri` references and supports environment variable expansion in `.mcp.json`.
-
-### Codex
-
-OpenAI documents Codex MCP setup here:
-
-- https://developers.openai.com/learn/docs-mcp
-
-Codex supports MCP server configuration through the CLI and `~/.codex/config.toml`.
-
-### Gemini CLI
-
-Gemini CLI has a built-in MCP manager. In the verified local workflow, the simplest path is:
-
-```bash
-gemini mcp add sqlite-lab /ABSOLUTE/PATH/TO/python /ABSOLUTE/PATH/TO/implementation/mcp_server.py --description "SQLite lab FastMCP server" --timeout 10000
-gemini mcp list
+```powershell
+python implementation\mcp_server.py
 ```
 
-Gemini CLI also documents configuration details here:
+Server chay STDIO mac dinh, phu hop cho MCP clients nhu Codex, Claude Code, Gemini CLI va MCP Inspector.
 
-- https://github.com/google-gemini/gemini-cli/blob/main/docs/reference/configuration.md
+## 4. Tool descriptions
 
-Expected outcome:
+### `search`
 
-- the server appears as `Connected`
-- Gemini can discover `search`, `insert`, and `aggregate`
-- a headless smoke test works with `gemini --allowed-mcp-server-names sqlite-lab --yolo -p "..."`
+Search rows trong mot table hop le.
 
-### Antigravity
+Input chinh:
 
-Antigravity commonly uses an `mcp_config.json` file with a shape similar to Gemini CLI. Verify the current product behavior in your installed version before grading against exact UI steps.
+- `table`: ten table
+- `filters`: object hoac list filters
+- `columns`: list columns hoac comma string
+- `limit`: gioi han rows, max 100
+- `offset`: pagination offset
+- `order_by`: column de sort
+- `descending`: sort giam dan neu `true`
 
-## Deliverable Checklist
+Vi du:
 
-- working FastMCP server
-- SQLite database and seed data
-- `search`, `insert`, `aggregate` tools
-- schema resource and schema resource template
-- verification steps
-- automated tests or repeatable verification script
-- client configuration example
-- README with setup and demo steps
-- Inspector startup command or helper script
-- at least one verified Gemini CLI or Claude/Codex client test
+```json
+{
+  "table": "students",
+  "filters": { "cohort": "A1" },
+  "columns": ["name", "cohort", "score"],
+  "order_by": "score",
+  "descending": true,
+  "limit": 3
+}
+```
 
-## Bonus
+### `insert`
 
-Optional bonus:
+Insert mot row moi vao table hop le. `values` khong duoc rong va moi column phai ton tai trong schema.
 
-- add authentication for SSE or HTTP transport
-- support both SQLite and PostgreSQL with the same MCP surface
-- add richer output annotations or pagination
+Vi du:
+
+```json
+{
+  "table": "students",
+  "values": {
+    "name": "Do Minh",
+    "cohort": "A3",
+    "email": "minh.do@example.com",
+    "score": 84.0,
+    "active": 1
+  }
+}
+```
+
+### `aggregate`
+
+Tinh aggregate tren table hop le.
+
+Metrics ho tro:
+
+- `count`
+- `avg`
+- `sum`
+- `min`
+- `max`
+
+Vi du:
+
+```json
+{
+  "table": "students",
+  "metric": "avg",
+  "column": "score",
+  "group_by": "cohort"
+}
+```
+
+## 5. Validation va SQL safety
+
+Implementation reject:
+
+- table khong ton tai
+- column khong ton tai
+- filter operator khong duoc support
+- aggregate metric khong hop le
+- aggregate thieu column khi metric can column
+- insert rong
+
+Values trong filters va insert dung SQLite placeholders `?`. Table/column/order/group identifiers duoc validate theo schema that truoc khi dua vao SQL.
+
+Filter operators ho tro:
+
+```text
+=, ==, eq, !=, <>, ne, <, lt, <=, lte, >, gt, >=, gte, like, in
+```
+
+## 6. Verify nhanh
+
+Chay smoke verification:
+
+```powershell
+python implementation\verify_server.py
+```
+
+Script nay kiem tra:
+
+- server khoi tao duoc
+- 3 tools discoverable
+- schema resource discoverable
+- table schema template discoverable
+- doc duoc `schema://database`
+- doc duoc `schema://table/students`
+- valid `search` call thanh cong
+- valid `insert` call thanh cong
+- valid `aggregate` call thanh cong
+- invalid `search` call tra loi ro rang
+
+## 7. Chay tests
+
+```powershell
+pytest
+```
+
+Tests dung database tam trong `tmp_path`, nen khong phu thuoc vao database local.
+
+## 8. MCP Inspector
+
+Lenh mau tren Windows:
+
+```powershell
+npx -y @modelcontextprotocol/inspector python C:\Users\Admin\Desktop\CODE\VinAI\Week6\2A202600750-VuVanHuy-Day26\implementation\mcp_server.py
+```
+
+Trong Inspector, can verify:
+
+- tools `search`, `insert`, `aggregate` hien ra
+- resource `schema://database` hien ra
+- resource template `schema://table/{table_name}` hien ra
+- valid tool call tra ket qua dung
+- invalid tool call, vi du `{"table": "missing"}`, tra loi `unknown table`
+
+## 9. Codex MCP client config
+
+Codex doc cau hinh MCP server trong `config.toml` bang `[mcp_servers.<name>]`.
+
+Example da co tai:
+
+```text
+client_configs/codex_config.example.toml
+```
+
+Copy block trong file do vao `~/.codex/config.toml`, hoac `.codex/config.toml` neu repo da duoc Codex trust.
+
+Sau khi cau hinh, restart Codex hoac mo session moi, roi dung `/mcp` trong TUI de xem server active. Co the hoi Codex:
+
+```text
+Use the sqlite_lab MCP server. Read schema://database, then search the top 2 students by score.
+```
+
+## 10. Claude Code config example
+
+Example co tai:
+
+```text
+client_configs/claude_mcp.example.json
+```
+
+Claude Code co the doc resource bang cu phap tuong tu:
+
+```text
+@sqlite-lab:schema://database
+```
+
+## 11. Suggested demo flow
+
+Video demo khoang 2 phut:
+
+1. Chay `python implementation\verify_server.py`.
+2. Mo Inspector va show 3 tools.
+3. Doc `schema://database`.
+4. Goi `search` students cohort `A1`.
+5. Goi `insert` them mot student moi.
+6. Goi `aggregate` average score by cohort.
+7. Goi invalid request voi table sai de show clear error.
+8. Show Codex/Claude config example.
+
+## 12. Submission checklist
+
+- [x] FastMCP server starts successfully
+- [x] Project structure clean and understandable
+- [x] SQLite database initialized with reproducible schema/data
+- [x] Code separated into server logic and database logic
+- [x] `search` supports filters, ordering, pagination
+- [x] `insert` works and returns inserted payload
+- [x] `aggregate` supports `count`, `avg`, `sum`, `min`, `max`
+- [x] Full database schema resource exposed
+- [x] Per-table schema resource template exposed
+- [x] Invalid table and column names rejected
+- [x] Unsupported operators and bad aggregate requests rejected
+- [x] SQL uses validation plus parameterized values
+- [x] Tool discovery verified
+- [x] Successful tool calls demonstrated
+- [x] Failing tool calls demonstrated with clear errors
+- [x] At least one MCP client config example included
+- [x] Setup and test steps documented
+- [x] Inspector command documented
+

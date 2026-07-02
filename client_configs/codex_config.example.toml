@@ -1,0 +1,12 @@
+# Copy this block into ~/.codex/config.toml, or into .codex/config.toml
+# for a trusted project-scoped setup. Replace paths with absolute paths
+# when configuring another machine.
+
+[mcp_servers.sqlite_lab]
+command = "python"
+args = ["C:/Users/Admin/Desktop/CODE/VinAI/Week6/2A202600750-VuVanHuy-Day26/implementation/mcp_server.py"]
+cwd = "C:/Users/Admin/Desktop/CODE/VinAI/Week6/2A202600750-VuVanHuy-Day26"
+startup_timeout_sec = 10
+tool_timeout_sec = 60
+enabled = true
+

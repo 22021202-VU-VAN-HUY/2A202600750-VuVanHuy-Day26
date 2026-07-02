@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "sqlite-lab": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "C:/Users/Admin/Desktop/CODE/VinAI/Week6/2A202600750-VuVanHuy-Day26/implementation/mcp_server.py"
+      ],
+      "env": {}
+    }
+  }
+}
+
