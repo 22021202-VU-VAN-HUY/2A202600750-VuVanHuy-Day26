@@ -1,28 +1,68 @@
-# SQLite FastMCP Lab Server
+# Lab MCP SQLite với FastMCP
 
-Project nay implement mot MCP server bang FastMCP de expose database SQLite nho qua 3 tools bat buoc:
+**Họ và tên:** Vũ Văn Huy  
+**Mã học viên:** 2A202600750
+
+## 1. Giới thiệu
+
+Dự án này xây dựng một MCP server bằng Python, sử dụng FastMCP và SQLite. Server cung cấp một cơ sở dữ liệu nhỏ cho MCP client thông qua 3 tool bắt buộc:
 
 - `search`
 - `insert`
 - `aggregate`
 
-Server cung expose schema database qua MCP resources:
+Server cũng cung cấp schema của database thông qua MCP resources:
 
 - `schema://database`
 - `schema://table/{table_name}`
 
-Dataset demo gom 3 bang: `students`, `courses`, `enrollments`.
+Dataset demo gồm 3 bảng:
 
-## 1. Setup
+- `students`
+- `courses`
+- `enrollments`
 
-Yeu cau:
+## 2. Cấu trúc dự án
 
-- Python 3.10+ (da test voi Python 3.11)
+```text
+implementation/
+  __init__.py
+  db.py
+  init_db.py
+  mcp_server.py
+  verify_server.py
+  tests/
+    test_server.py
+
+client_configs/
+  codex_config.example.toml
+  claude_mcp.example.json
+
+deliverables/
+  screenshots/
+  verify_output.txt
+```
+
+Trong đó:
+
+- `implementation/db.py`: xử lý SQLite, validate table/column/operator và build query an toàn.
+- `implementation/init_db.py`: tạo database và seed dữ liệu mẫu.
+- `implementation/mcp_server.py`: khai báo FastMCP server, tools và resources.
+- `implementation/verify_server.py`: smoke test MCP server bằng FastMCP client.
+- `implementation/tests/test_server.py`: test tự động bằng `pytest`.
+- `client_configs/`: ví dụ cấu hình MCP client.
+- `deliverables/`: ảnh chụp Inspector và output kiểm chứng.
+
+## 3. Setup môi trường
+
+Yêu cầu:
+
+- Python 3.10 trở lên
 - `pip`
-- Node.js va `npx` neu dung MCP Inspector
-- Codex, Claude Code, hoac MCP client khac neu muon demo client rieng
+- Node.js và `npx` nếu dùng MCP Inspector
+- Codex, Claude Code hoặc một MCP client tương đương để demo client integration
 
-Tao virtual environment tren Windows PowerShell:
+Tạo virtual environment trên Windows PowerShell:
 
 ```powershell
 python -m venv .venv
@@ -31,52 +71,52 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Neu PowerShell chan activate script:
+Nếu PowerShell chặn activate script:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
 
-## 2. Khoi tao database
+## 4. Khởi tạo database
 
 ```powershell
 python implementation\init_db.py
 ```
 
-Lenh nay tao database tai:
+Lệnh này tạo file SQLite tại:
 
 ```text
 implementation/data/lab.db
 ```
 
-File database sinh ra duoc ignore, nen co the chay lai de reset seed data.
+File database sinh ra được ignore bằng `.gitignore`, vì vậy có thể chạy lại script để reset dữ liệu seed.
 
-## 3. Chay MCP server
+## 5. Chạy MCP server
 
 ```powershell
 python implementation\mcp_server.py
 ```
 
-Server chay STDIO mac dinh, phu hop cho MCP clients nhu Codex, Claude Code, Gemini CLI va MCP Inspector.
+Server chạy bằng STDIO mặc định, phù hợp với Codex, Claude Code, Gemini CLI và MCP Inspector.
 
-## 4. Tool descriptions
+## 6. Mô tả tools
 
 ### `search`
 
-Search rows trong mot table hop le.
+Tìm kiếm dữ liệu trong một bảng hợp lệ.
 
-Input chinh:
+Input chính:
 
-- `table`: ten table
-- `filters`: object hoac list filters
-- `columns`: list columns hoac comma string
-- `limit`: gioi han rows, max 100
-- `offset`: pagination offset
-- `order_by`: column de sort
-- `descending`: sort giam dan neu `true`
+- `table`: tên bảng.
+- `filters`: object hoặc list filters.
+- `columns`: list columns hoặc comma string.
+- `limit`: giới hạn số dòng, tối đa 100.
+- `offset`: vị trí bắt đầu để phân trang.
+- `order_by`: cột dùng để sắp xếp.
+- `descending`: sắp xếp giảm dần nếu bằng `true`.
 
-Vi du:
+Ví dụ:
 
 ```json
 {
@@ -91,9 +131,9 @@ Vi du:
 
 ### `insert`
 
-Insert mot row moi vao table hop le. `values` khong duoc rong va moi column phai ton tai trong schema.
+Thêm một dòng mới vào bảng hợp lệ. `values` không được rỗng và mọi column phải tồn tại trong schema.
 
-Vi du:
+Ví dụ:
 
 ```json
 {
@@ -110,9 +150,9 @@ Vi du:
 
 ### `aggregate`
 
-Tinh aggregate tren table hop le.
+Tính toán aggregate trên một bảng hợp lệ.
 
-Metrics ho tro:
+Metric được hỗ trợ:
 
 - `count`
 - `avg`
@@ -120,7 +160,7 @@ Metrics ho tro:
 - `min`
 - `max`
 
-Vi du:
+Ví dụ:
 
 ```json
 {
@@ -131,133 +171,128 @@ Vi du:
 }
 ```
 
-## 5. Validation va SQL safety
+## 7. Validation và an toàn SQL
 
-Implementation reject:
+Implementation đã xử lý reject các request không hợp lệ:
 
-- table khong ton tai
-- column khong ton tai
-- filter operator khong duoc support
-- aggregate metric khong hop le
-- aggregate thieu column khi metric can column
-- insert rong
+- Table không tồn tại.
+- Column không tồn tại.
+- Filter operator không được hỗ trợ.
+- Aggregate metric không hợp lệ.
+- Aggregate thiếu column khi metric yêu cầu column.
+- Insert rỗng.
 
-Values trong filters va insert dung SQLite placeholders `?`. Table/column/order/group identifiers duoc validate theo schema that truoc khi dua vao SQL.
+Các giá trị trong filters và insert dùng SQLite placeholders `?`. Table, column, order và group identifiers được validate theo schema thật trước khi đưa vào SQL.
 
-Filter operators ho tro:
+Filter operators được hỗ trợ:
 
 ```text
 =, ==, eq, !=, <>, ne, <, lt, <=, lte, >, gt, >=, gte, like, in
 ```
 
-## 6. Verify nhanh
+## 8. Kiểm chứng nhanh
 
-Chay smoke verification:
+Chạy smoke verification:
 
 ```powershell
 python implementation\verify_server.py
 ```
 
-Script nay kiem tra:
+Script kiểm tra:
 
-- server khoi tao duoc
-- 3 tools discoverable
-- schema resource discoverable
-- table schema template discoverable
-- doc duoc `schema://database`
-- doc duoc `schema://table/students`
-- valid `search` call thanh cong
-- valid `insert` call thanh cong
-- valid `aggregate` call thanh cong
-- invalid `search` call tra loi ro rang
+- Server khởi tạo được.
+- 3 tools được discover.
+- Schema resource được discover.
+- Table schema template được discover.
+- Đọc được `schema://database`.
+- Đọc được `schema://table/students`.
+- Valid `search` call thành công.
+- Valid `insert` call thành công.
+- Valid `aggregate` call thành công.
+- Invalid `search` call trả lỗi rõ ràng.
 
-## 7. Chay tests
+## 9. Chạy test tự động
 
 ```powershell
 pytest
 ```
 
-Tests dung database tam trong `tmp_path`, nen khong phu thuoc vao database local.
+Tests sử dụng database tạm trong `tmp_path`, nên không phụ thuộc vào database local.
 
-## 8. MCP Inspector
+## 10. Kiểm chứng bằng MCP Inspector
 
-Lenh mau tren Windows:
+Lệnh mẫu trên Windows:
 
 ```powershell
 npx -y @modelcontextprotocol/inspector python C:\Users\Admin\Desktop\CODE\VinAI\Week6\2A202600750-VuVanHuy-Day26\implementation\mcp_server.py
 ```
 
-Trong Inspector, can verify:
+Trong Inspector cần kiểm chứng:
 
-- tools `search`, `insert`, `aggregate` hien ra
-- resource `schema://database` hien ra
-- resource template `schema://table/{table_name}` hien ra
-- valid tool call tra ket qua dung
-- invalid tool call, vi du `{"table": "missing"}`, tra loi `unknown table`
+- Server hiển thị trạng thái `Connected`.
+- Tools `search`, `insert`, `aggregate` xuất hiện.
+- Resource `schema://database` xuất hiện.
+- Resource template `schema://table/{table_name}` xuất hiện.
+- Valid tool call trả kết quả đúng.
+- Invalid tool call, ví dụ `{"table": "missing"}`, trả lỗi `unknown table`.
 
-## 9. Codex MCP client config
+Ảnh chụp bằng chứng nằm trong:
 
-Codex doc cau hinh MCP server trong `config.toml` bang `[mcp_servers.<name>]`.
+```text
+deliverables/screenshots/
+```
 
-Example da co tai:
+## 11. Cấu hình Codex MCP client
+
+Ví dụ cấu hình đã có tại:
 
 ```text
 client_configs/codex_config.example.toml
 ```
 
-Copy block trong file do vao `~/.codex/config.toml`, hoac `.codex/config.toml` neu repo da duoc Codex trust.
-Repo cung co `AGENTS.md` de huong dan Codex dung `sqlite_lab` khi can schema hoac lookup database.
+Copy block trong file đó vào `~/.codex/config.toml`, hoặc `.codex/config.toml` nếu repo đã được Codex trust.
 
-Sau khi cau hinh, restart Codex hoac mo session moi, roi dung `/mcp` trong TUI de xem server active. Co the hoi Codex:
+Repo cũng có `AGENTS.md` để hướng dẫn Codex dùng MCP server `sqlite_lab` khi cần schema hoặc lookup database.
+
+Sau khi cấu hình, restart Codex hoặc mở session mới, rồi dùng `/mcp` trong TUI để xem server active. Có thể hỏi Codex:
 
 ```text
 Use the sqlite_lab MCP server. Read schema://database, then search the top 2 students by score.
 ```
 
-## 10. Claude Code config example
+## 12. Cấu hình Claude Code
 
-Example co tai:
+Ví dụ có tại:
 
 ```text
 client_configs/claude_mcp.example.json
 ```
 
-Claude Code co the doc resource bang cu phap tuong tu:
+Claude Code có thể đọc resource bằng cú pháp tương tự:
 
 ```text
 @sqlite-lab:schema://database
 ```
 
-## 11. Suggested demo flow
+## 13. Checklist nộp bài
 
-Video demo khoang 2 phut:
+- [x] FastMCP server start thành công.
+- [x] Cấu trúc project rõ ràng.
+- [x] SQLite database có schema và seed data reproducible.
+- [x] Code tách server logic và database logic.
+- [x] `search` hỗ trợ filters, ordering, pagination.
+- [x] `insert` hoạt động và trả payload đã insert.
+- [x] `aggregate` hỗ trợ `count`, `avg`, `sum`, `min`, `max`.
+- [x] Expose full database schema resource.
+- [x] Expose per-table schema resource template.
+- [x] Reject invalid table và column.
+- [x] Reject unsupported operators và bad aggregate requests.
+- [x] SQL dùng validation và parameterized values.
+- [x] Tool discovery đã được verify.
+- [x] Successful tool calls đã được verify.
+- [x] Failing tool calls trả clear errors.
+- [x] Có ví dụ cấu hình Codex MCP client.
+- [x] Có hướng dẫn setup, test và demo.
+- [x] Có command MCP Inspector.
+- [x] Có screenshots/output kiểm chứng trong `deliverables/`.
 
-1. Chay `python implementation\verify_server.py`.
-2. Mo Inspector va show 3 tools.
-3. Doc `schema://database`.
-4. Goi `search` students cohort `A1`.
-5. Goi `insert` them mot student moi.
-6. Goi `aggregate` average score by cohort.
-7. Goi invalid request voi table sai de show clear error.
-8. Show Codex/Claude config example.
-
-## 12. Submission checklist
-
-- [x] FastMCP server starts successfully
-- [x] Project structure clean and understandable
-- [x] SQLite database initialized with reproducible schema/data
-- [x] Code separated into server logic and database logic
-- [x] `search` supports filters, ordering, pagination
-- [x] `insert` works and returns inserted payload
-- [x] `aggregate` supports `count`, `avg`, `sum`, `min`, `max`
-- [x] Full database schema resource exposed
-- [x] Per-table schema resource template exposed
-- [x] Invalid table and column names rejected
-- [x] Unsupported operators and bad aggregate requests rejected
-- [x] SQL uses validation plus parameterized values
-- [x] Tool discovery verified
-- [x] Successful tool calls demonstrated
-- [x] Failing tool calls demonstrated with clear errors
-- [x] Codex MCP client config example included
-- [x] Setup and test steps documented
-- [x] Inspector command documented

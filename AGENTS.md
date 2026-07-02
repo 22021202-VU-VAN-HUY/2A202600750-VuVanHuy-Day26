@@ -1,8 +1,19 @@
-# Codex project guidance
+# Hướng dẫn cho Codex trong project
 
-Use the `sqlite_lab` MCP server whenever a task needs database schema context, SQL-backed record lookup, or a demonstration of the lab tools. Read `schema://database` before choosing table or column names, and prefer small `search` limits for interactive answers.
+**Họ và tên:** Vũ Văn Huy  
+**Mã học viên:** 2A202600750
 
-Useful local commands:
+Khi task cần đọc schema database, tra cứu dữ liệu SQLite hoặc demo các tool của lab, hãy dùng MCP server `sqlite_lab`.
+
+Trước khi chọn table hoặc column, đọc resource:
+
+```text
+schema://database
+```
+
+Khi dùng tool `search`, ưu tiên `limit` nhỏ để câu trả lời gọn và dễ kiểm tra.
+
+Các lệnh local hữu ích:
 
 ```powershell
 python implementation\init_db.py

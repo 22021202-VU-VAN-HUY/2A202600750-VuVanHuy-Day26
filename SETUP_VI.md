@@ -1,23 +1,22 @@
-# Huong dan setup lab MCP SQLite
+# Hướng dẫn setup Lab MCP SQLite
 
-Tai lieu nay tom tat viec can lam trong lab va cac buoc setup du an. File nay chi la huong dan chuan bi, chua bao gom code implementation.
+**Họ và tên:** Vũ Văn Huy  
+**Mã học viên:** 2A202600750
 
-## 1. Muc tieu lab
+Tài liệu này mô tả cách chuẩn bị môi trường, chạy project, kiểm thử MCP server và kiểm chứng trước khi nộp bài.
 
-Can xay dung mot MCP server bang Python, su dung FastMCP va SQLite. Server phai expose:
+## 1. Mục tiêu lab
 
-- 3 MCP tools: `search`, `insert`, `aggregate`
-- 1 resource doc schema toan bo database: `schema://database`
-- 1 dynamic resource template cho schema tung bang: `schema://table/{table_name}`
-- Co validation de chan request khong an toan hoac khong hop le
-- Co cach verify bang MCP Inspector hoac client MCP khac
-- Co vi du cau hinh it nhat mot client nhu Claude Code, Codex hoac Gemini CLI
+Xây dựng một MCP server bằng Python, sử dụng FastMCP và SQLite. Server cần expose:
 
-## 2. Yeu cau chinh can implement sau nay
+- 3 MCP tools: `search`, `insert`, `aggregate`.
+- 1 resource đọc schema toàn bộ database: `schema://database`.
+- 1 dynamic resource template đọc schema từng bảng: `schema://table/{table_name}`.
+- Validation để chặn request không an toàn hoặc không hợp lệ.
+- Quy trình verify bằng MCP Inspector hoặc MCP client tương đương.
+- Ví dụ cấu hình ít nhất một MCP client như Codex, Claude Code hoặc Gemini CLI.
 
-### MCP server
-
-Tao thu muc implementation theo goi y:
+## 2. Cấu trúc project
 
 ```text
 implementation/
@@ -29,68 +28,24 @@ implementation/
     test_server.py
 ```
 
-Trong do:
+Ý nghĩa các file:
 
-- `mcp_server.py`: khai bao FastMCP server, tools va resources
-- `db.py`: xu ly ket noi SQLite, validate table/column, build query an toan
-- `init_db.py`: tao database va seed data mau
-- `verify_server.py`: script smoke test de kiem tra server/tools/resources
-- `tests/`: test tu dong neu co thoi gian
+- `mcp_server.py`: khai báo FastMCP server, tools và resources.
+- `db.py`: xử lý kết nối SQLite, validate table/column và build query an toàn.
+- `init_db.py`: tạo database và seed dữ liệu mẫu.
+- `verify_server.py`: smoke test để kiểm tra server, tools và resources.
+- `tests/`: test tự động bằng `pytest`.
 
-### Tools bat buoc
+## 3. Điều kiện môi trường
 
-`search` nen ho tro:
+Cần cài:
 
-- chon table
-- chon columns
-- filters
-- order by
-- limit va offset
+- Python 3.10 trở lên.
+- `pip`.
+- Node.js và `npx` nếu muốn dùng MCP Inspector.
+- Một MCP client để demo, ví dụ Codex, Claude Code hoặc Gemini CLI.
 
-`insert` nen ho tro:
-
-- insert row moi vao table
-- reject insert rong
-- tra ve payload da insert, kem id neu co
-
-`aggregate` nen ho tro:
-
-- `count`
-- `avg`
-- `sum`
-- `min`
-- `max`
-- filters
-- group by
-
-### Database goi y
-
-Dung dataset nho de demo de:
-
-- `students`
-- `courses`
-- `enrollments`
-
-Vi du demo:
-
-- tim tat ca students trong cohort `A1`
-- insert mot student moi
-- dem so row trong mot table
-- tinh diem trung binh theo cohort
-- doc `schema://database`
-- doc `schema://table/students`
-- goi request sai, vi du search table khong ton tai
-
-## 3. Dieu kien moi truong
-
-Can cai:
-
-- Python 3.10 tro len
-- `pip`
-- Node.js va `npx` neu muon dung MCP Inspector
-- Mot MCP client de demo, vi du Gemini CLI, Claude Code hoac Codex
-
-Kiem tra nhanh:
+Kiểm tra nhanh:
 
 ```powershell
 python --version
@@ -99,9 +54,9 @@ node --version
 npx --version
 ```
 
-## 4. Tao virtual environment
+## 4. Tạo virtual environment
 
-Tren Windows PowerShell:
+Trên Windows PowerShell:
 
 ```powershell
 python -m venv .venv
@@ -109,14 +64,14 @@ python -m venv .venv
 python -m pip install --upgrade pip
 ```
 
-Neu PowerShell chan activate script, co the chay:
+Nếu PowerShell chặn activate script:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
 
-Tren macOS/Linux:
+Trên macOS/Linux:
 
 ```bash
 python3 -m venv .venv
@@ -124,75 +79,118 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 ```
 
-## 5. Cai dependencies du kien
+## 5. Cài dependencies
 
-Sau khi co code, nen tao `requirements.txt`. Goi toi thieu du kien:
+Project dùng các dependencies trong `requirements.txt`:
 
 ```text
 fastmcp
 pytest
 ```
 
-Cai bang:
+Cài bằng:
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-Neu chua co `requirements.txt`, co the cai tam:
+## 6. Khởi tạo database
 
-```powershell
-pip install fastmcp pytest
-```
-
-## 6. Khoi tao database sau khi code xong
-
-Sau khi implement `implementation/init_db.py`, chay:
+Chạy:
 
 ```powershell
 python implementation\init_db.py
 ```
 
-Ket qua mong doi:
+Kết quả mong đợi:
 
-- Tao file SQLite, vi du `implementation\data\lab.db`
-- Tao cac bang `students`, `courses`, `enrollments`
-- Seed san mot so dong data mau de demo
+- Tạo file SQLite tại `implementation\data\lab.db`.
+- Tạo các bảng `students`, `courses`, `enrollments`.
+- Seed sẵn dữ liệu mẫu để demo.
 
-## 7. Chay MCP server
-
-Sau khi implement `implementation/mcp_server.py`, chay thu:
+## 7. Chạy MCP server
 
 ```powershell
 python implementation\mcp_server.py
 ```
 
-Server nen chay stdio mac dinh de de ket noi voi MCP clients.
+Server chạy STDIO mặc định để kết nối dễ với MCP clients.
 
-## 8. Verify bang MCP Inspector
+## 8. Verify bằng script
 
-Dung duong dan tuyet doi cho Python va file server neu Inspector yeu cau.
+```powershell
+python implementation\verify_server.py
+```
 
-Vi du tren Windows:
+Script này kiểm tra:
+
+- Server start được.
+- 3 tools `search`, `insert`, `aggregate` discover được.
+- Resource `schema://database` discover được.
+- Resource template `schema://table/{table_name}` discover được.
+- Valid tool calls chạy thành công.
+- Invalid tool call trả lỗi rõ ràng.
+
+## 9. Chạy test tự động
+
+```powershell
+pytest
+```
+
+Kết quả đã verify:
+
+```text
+9 passed
+```
+
+## 10. Verify bằng MCP Inspector
+
+Ví dụ trên Windows:
 
 ```powershell
 npx -y @modelcontextprotocol/inspector python C:\ABSOLUTE\PATH\TO\implementation\mcp_server.py
 ```
 
-Can chup hoac ghi lai cac muc sau:
+Trong Inspector cần chụp hoặc ghi lại:
 
-- server start thanh cong
-- tools `search`, `insert`, `aggregate` hien ra
-- resource `schema://database` hien ra
-- resource template `schema://table/{table_name}` doc duoc
-- valid tool call tra ket qua dung
-- invalid tool call tra loi ro rang
+- Server kết nối thành công.
+- Tools `search`, `insert`, `aggregate` hiển thị.
+- Resource `schema://database` hiển thị.
+- Resource template `schema://table/{table_name}` đọc được.
+- Valid tool call trả kết quả đúng.
+- Invalid tool call trả lỗi rõ ràng.
 
-## 9. Vi du cau hinh MCP client
+Ảnh chụp đã lưu tại:
+
+```text
+deliverables/screenshots/
+```
+
+## 11. Ví dụ cấu hình MCP client
+
+### Codex
+
+Ví dụ trong `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.sqlite_lab]
+command = "python"
+args = ["C:/ABSOLUTE/PATH/TO/implementation/mcp_server.py"]
+cwd = "C:/ABSOLUTE/PATH/TO/PROJECT"
+startup_timeout_sec = 10
+tool_timeout_sec = 60
+enabled = true
+```
+
+Project đã có file ví dụ:
+
+```text
+client_configs/codex_config.example.toml
+```
 
 ### Claude Code
 
-File `.mcp.json` vi du:
+File `.mcp.json` ví dụ:
 
 ```json
 {
@@ -207,71 +205,39 @@ File `.mcp.json` vi du:
 }
 ```
 
-### Codex
+Project đã có file ví dụ:
 
-Vi du trong `~/.codex/config.toml`:
-
-```toml
-[mcp_servers.sqlite_lab]
-command = "python"
-args = ["C:/ABSOLUTE/PATH/TO/implementation/mcp_server.py"]
+```text
+client_configs/claude_mcp.example.json
 ```
 
-### Gemini CLI
+## 12. Checklist trước khi nộp
 
-Vi du:
+- [x] FastMCP server start được.
+- [x] Project structure rõ ràng.
+- [x] SQLite database có schema và seed data reproducible.
+- [x] Code tách server logic và database logic.
+- [x] Có `search`, `insert`, `aggregate`.
+- [x] `search` có filters, ordering, pagination.
+- [x] `insert` trả về payload đã insert.
+- [x] `aggregate` hỗ trợ các metric cơ bản.
+- [x] Expose full schema resource.
+- [x] Expose per-table schema resource template.
+- [x] Reject table/column/operator/aggregate không hợp lệ.
+- [x] SQL dùng parameterized query khi có user input.
+- [x] Có verify tool discovery.
+- [x] Có verify valid calls và invalid calls.
+- [x] Có ví dụ cấu hình MCP client.
+- [x] Có README/setup docs với bước setup/test/demo.
+- [x] Có screenshots/output kiểm chứng.
 
-```powershell
-gemini mcp add sqlite-lab C:\ABSOLUTE\PATH\TO\.venv\Scripts\python.exe C:\ABSOLUTE\PATH\TO\implementation\mcp_server.py --description "SQLite lab FastMCP server" --timeout 10000
-gemini mcp list
-```
+## 13. Lưu ý an toàn SQL
 
-Smoke test mau:
+Không build SQL bằng cách nối trực tiếp raw input vào query. Implementation hiện tại:
 
-```powershell
-gemini --allowed-mcp-server-names sqlite-lab --yolo -p "Use the sqlite-lab MCP server and show me the top 2 students by score."
-```
-
-## 10. Checklist cham diem
-
-Truoc khi nop bai, can dam bao:
-
-- FastMCP server start duoc
-- Cac file du an nam trong structure ro rang
-- SQLite database co schema va seed data reproducible
-- Co `search`, `insert`, `aggregate`
-- `search` co filters, ordering, pagination
-- `insert` tra ve payload da insert
-- `aggregate` ho tro cac metric co ban
-- Expose full schema resource
-- Expose per-table schema resource template
-- Reject table/column/operator/aggregate khong hop le
-- SQL dung parameterized query khi co user input
-- Co verify tool discovery
-- Co verify valid calls va invalid calls
-- Co it nhat mot client MCP ket noi duoc
-- README hoac setup docs co buoc setup/test/demo
-- Co demo video ngan hoac screenshots
-
-## 11. Goi y thu tu lam bai
-
-1. Tao `implementation/` va file skeleton.
-2. Implement `init_db.py` de tao SQLite database va seed data.
-3. Implement `db.py` voi adapter SQLite va validation.
-4. Implement 3 tools trong `mcp_server.py`.
-5. Implement 2 schema resources.
-6. Viet `verify_server.py` hoac tests.
-7. Chay Inspector de verify.
-8. Cau hinh mot MCP client va quay demo.
-9. Cap nhat README voi lenh setup/test chinh xac.
-
-## 12. Luu y an toan SQL
-
-Khong build SQL bang cach noi truc tiep raw input vao query. Nen:
-
-- validate table name theo danh sach table that
-- validate column name theo schema that
-- chi cho phep operator nam trong allowlist, vi du `=`, `!=`, `<`, `<=`, `>`, `>=`, `like`, `in`
-- dung placeholder `?` cho values trong SQLite
-- gioi han `limit` de tranh output qua lon
+- Validate table name theo danh sách table thật.
+- Validate column name theo schema thật.
+- Chỉ cho phép operator nằm trong allowlist.
+- Dùng placeholder `?` cho values trong SQLite.
+- Giới hạn `limit` để tránh output quá lớn.
 
