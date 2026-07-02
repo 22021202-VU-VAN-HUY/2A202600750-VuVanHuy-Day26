@@ -206,6 +206,7 @@ client_configs/codex_config.example.toml
 ```
 
 Copy block trong file do vao `~/.codex/config.toml`, hoac `.codex/config.toml` neu repo da duoc Codex trust.
+Repo cung co `AGENTS.md` de huong dan Codex dung `sqlite_lab` khi can schema hoac lookup database.
 
 Sau khi cau hinh, restart Codex hoac mo session moi, roi dung `/mcp` trong TUI de xem server active. Co the hoi Codex:
 
@@ -257,7 +258,6 @@ Video demo khoang 2 phut:
 - [x] Tool discovery verified
 - [x] Successful tool calls demonstrated
 - [x] Failing tool calls demonstrated with clear errors
-- [x] At least one MCP client config example included
+- [x] Codex MCP client config example included
 - [x] Setup and test steps documented
 - [x] Inspector command documented
-
