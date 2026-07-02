@@ -51,4 +51,4 @@ temp/
 *.mp4
 *.mov
 *.webm
-screenshots/
+/screenshots/
